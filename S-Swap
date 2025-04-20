@@ -1,0 +1,641 @@
+import tkinter
+import datetime
+import ctypes
+import customtkinter
+from adodbapi.apibase import cvtUnicode
+from customtkinter import CTkFrame, CTkButton, CTkTextbox
+import tkinter as tk
+from tkinter import messagebox
+from pystyle import Write, Colors, Box, System, Cursor
+import os; import json
+import sys;import re;
+import random
+import time
+import subprocess
+import hashlib
+import requests
+import string
+customtkinter.set_appearance_mode("System")
+customtkinter.set_default_color_theme("dark-blue")
+Apath = "/storage/emulated/0/Android/data/net.kdt.pojavlaunch/files/.minecraft/"
+i=0
+
+app = customtkinter.CTk()
+app.iconbitmap("platform-tools\\why.ico")
+app.geometry("325x150")
+app.resizable(False, False)
+version = '1.01'
+PASTEBIN_URL = "https://pastebin.com/raw/uSLVgQjv"
+def get_hwid():
+    command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
+    result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
+    uuid = result.stdout.strip()
+    return hash(uuid)
+
+def check_hwid(hwids, user_hwid):
+    return user_hwid in hwids
+def hash(text):
+    return hashlib.sha3_512(text.encode()).hexdigest()
+def url():
+    os.startfile("https://funpay.com/users/11517555/")
+def hwid():
+    try:
+        if requests.get(PASTEBIN_URL).text.split(" ")[2] == "ban" or requests.get(PASTEBIN_URL).text.split(" ")[
+            1] == "ban":
+            app = customtkinter.CTk()
+            app.geometry("399x150")
+            app.resizable(False, False)
+            command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
+            result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
+            uuid = result.stdout.strip()
+            app.title(uuid)
+
+            but = customtkinter.CTkButton(
+                master=app,
+                text="Go to support",
+                fg_color=("black", "black"),
+                text_color="gray50",
+                border_color="white",
+                hover_color="gray10",
+                command=url
+            )
+
+            lab = customtkinter.CTkLabel(master=app, text_color="gray50",
+                                         text=f"This build is blocked\ncontact support")
+            lab.pack(pady=20, padx=20)
+            but.pack(anchor="c")
+            app.mainloop()
+            sys.exit(1)
+    except Exception:
+        None
+    global user_hwid
+    command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
+    result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
+    uuid = result.stdout.strip()
+    user_hwid = hash(uuid)
+    try:
+        hwids = requests.get(PASTEBIN_URL).text.splitlines()
+    except Exception as e:
+        sys.exit(1)
+    hashed_whitelist = [hash(hwid) for hwid in white_list]
+    if user_hwid in hashed_whitelist or user_hwid in hwids:
+        return
+    else:
+        app = customtkinter.CTk()
+        app.geometry("399x150")
+        app.resizable(False, False)
+        command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
+        result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
+        uuid = result.stdout.strip()
+        app.title(uuid)
+        but = customtkinter.CTkButton(
+            master=app,
+            text="Go to support",
+            fg_color=("black", "black"),
+            text_color="gray50",
+            border_color="white",
+            hover_color="gray10",
+            command=url
+        )
+
+        lab = customtkinter.CTkLabel(master=app, text_color="gray50",
+                                     text=f"Invalid HWID\ncontact support to reset HWID")
+        lab.pack(pady=20, padx=20)
+        but.pack(anchor="c")
+        app.mainloop()
+        sys.exit(1)
+def generate_random_string(length):
+    characters = string.ascii_letters + string.digits * 2 + string.punctuation
+    return ''.join(random.choice(characters) for _ in range(length))
+
+def on_validate(P):
+    return len(P) <= 20
+
+def on_enter(event):
+    check_password(password_entry.get())
+def read_config(config_file = "config.json"):
+    try:
+        if not os.path.exists(config_file):
+            print(f"Error: File '{config_file}' not found.")
+            return None
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            config["minecraft"] = config.get('minecraft')
+            config["local_hosts"] = config.get('local_hosts')
+            config["network_host"] = config.get('network_host')
+            config["AndroidModDefault"] = config.get('AndroidModDefault')
+            if not all([config["minecraft"], config["local_hosts"], config["minecraft"], config["AndroidModDefault"]]):
+                raise ValueError("Missing required fields in config.json")
+            return config["minecraft"],config["local_hosts"],config["network_host"],config["AndroidModDefault"]
+    except FileNotFoundError:
+        messagebox.showerror("Error", f"Error: config.json not found.")
+        exit()
+    except json.JSONDecodeError as e:
+        messagebox.showerror("Error", f"Error: Syntax config.json broken: {e}")
+        exit()
+    except ValueError as e:
+        messagebox.showerror("Error", f"Error in config.json: {e}")
+        exit()
+    except Exception as e:
+        messagebox.showerror("Error", f"An unexpected error occurred: {e}")
+        exit()
+def check_password(password):
+    global i
+    try:
+        if requests.get(PASTEBIN_URL).text.split(" ")[1]:
+            correct_password = hash(requests.get(PASTEBIN_URL).text.split(" ")[1])
+    except Exception:
+        correct_password = hash("1")
+    if hash(password) == correct_password:
+        password_entry.pack_forget()
+        password_button.pack_forget()
+        frame.pack(side='left', padx=10, pady=10)
+        frame.pack_propagate(False)
+        frame1.pack(anchor='nw', padx=2, pady=2)
+        frame1.pack_propagate(False)
+        text.pack()
+        frame2.pack(anchor='n', padx=[0, 10], pady=10)
+        frame2.pack_propagate(False)
+        button1.pack(side='top', padx=5, pady=5)
+        button2.pack(side='top', padx=5, pady=5)
+        button3.pack(side='top', padx=5, pady=5)
+        tg.pack(side='left', padx=6, pady=[20, 0])
+        fp.pack(side='right', padx=6, pady=[20, 0])
+        i = 1
+        word = f"S-Swap {version} | t.me/S_TeamInfo"
+        b = len(word)
+        wait = 0.05
+        while b > 0:
+            app.title(word[:-b] + generate_random_string(b))
+            time.sleep(wait)
+            b -= 1
+        app.title(word)
+        System.Clear()
+        System.Title('S-Swap (log) │ t.me/S_TeamInfo')
+        app.geometry('450x300')
+        app.resizable(False, False)
+        customtkinter.set_default_color_theme("dark-blue")
+        if ctypes.windll.shell32.IsUserAnAdmin():
+            None
+        else:
+            messagebox.showerror("Error", f"Error: No administrator rights")
+            sys.exit(0)
+    else:
+        return
+
+def info():
+    block('on')
+    clear_frame2()
+    command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
+    result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
+    uuid = result.stdout.strip()
+    info_label = minecraft_label = customtkinter.CTkLabel(master=frame2, text=f"Version: {version}\nHWID: {uuid}",text_color="gray50")
+    minecraft_label.pack(pady=1)
+    info_label.pack(pady=1)
+    block('off')
+def block(text):
+    if text.lower() == 'on':
+        button1.configure(state="disabled")
+        button2.configure(state="disabled")
+        button3.configure(state="disabled")
+        tg.configure(state="disabled")
+        fp.configure(state="disabled")
+    elif text.lower() == 'off':
+        app.after(500, lambda: button1.configure(state="normal"))
+        app.after(500, lambda: button2.configure(state="normal"))
+        app.after(500, lambda: button3.configure(state="normal"))
+        app.after(500, lambda: tg.configure(state="normal"))
+        app.after(500, lambda: fp.configure(state="normal"))
+
+def setting():
+    block('on')
+    minecraft, local_hosts, network_host, AndroidModDefault = read_config()
+    clear_frame2()
+    frame3 = CTkFrame(master=frame2, width=250, height=260, border_color="gray50", border_width=1)
+    frame3.pack(side='top', padx=[5,5], pady=10)
+    frame3.pack_propagate(False)
+    minecraft_label = customtkinter.CTkLabel(master=frame3, text="Minecraft path:", text_color="gray50")
+    minecraft_label.pack(pady=1)
+
+    minecraft_combobox = customtkinter.CTkEntry(master=frame3,fg_color=("black", "black"),
+    text_color="gray50",
+    border_color="black",width=200)
+    minecraft_combobox.pack()
+    minecraft_combobox.delete(0, customtkinter.END)
+    minecraft_combobox.insert(0, minecraft)
+    local_hosts_label = customtkinter.CTkLabel(master=frame3,text="Add Local host:",text_color="gray50")
+    local_hosts_label.pack(pady=1)
+
+    local_hosts_combobox = customtkinter.CTkEntry(master=frame3,fg_color=("black", "black"),
+    text_color="gray50",
+    border_color="black")
+    local_hosts_combobox.pack(pady=0)
+    network_host_label = customtkinter.CTkLabel(master=frame3, text="Add Network host:",text_color="gray50")
+    network_host_label.pack(pady=0)
+    network_host_combobox = customtkinter.CTkEntry(master=frame3,fg_color=("black", "black"),
+    text_color="gray50",
+    border_color="black")
+    network_host_combobox.pack(pady=[0, 1])
+    global check_var
+    check_var = customtkinter.IntVar()
+    checkbox1 = customtkinter.CTkCheckBox(master=frame3,text="AndroidModeDefault",fg_color='black',text_color='gray50',border_color='black',hover_color='gray10',variable=check_var)
+    checkbox1.pack(pady=[10, 0])
+    if AndroidModDefault.lower() == 'true':
+        checkbox1.select()
+    def save_changers():
+        with open("config.json", "r") as f:
+            config = json.load(f)
+        minecraft_path = minecraft_combobox.get()
+        local_host = local_hosts_combobox.get()
+        network_host = network_host_combobox.get()
+        android_mode_default = checkbox1.get()
+        config['minecraft'] = minecraft_path
+        config['AndroidModDefault'] = str(bool(android_mode_default))
+        found_local = False
+        for key, value in config['local_hosts'].items():
+            if value == local_host or local_host =='':
+                found_local = True
+                break
+        if not found_local:
+            new_key = str(len(config['local_hosts']) + 1)
+            config['local_hosts'][new_key] = local_host
+
+        found_network = False
+        for key, value1 in config['network_host'].items():
+            if value1 == network_host or network_host =='':
+                found_network = True
+                break
+
+        if not found_network:
+            new_key = str(len(config['network_host']) + 1)
+            config['network_host'][new_key] = network_host
+        try:
+            with open("config.json", "w") as f:
+                json.dump(config, f, indent=4)
+        except Exception as e:
+            messagebox.showerror("Error", f"Error saving config: {e}")
+    save_changers_button = customtkinter.CTkButton(master=frame3, width=90, height=30, text='Save changes',
+                                      fg_color=("black", "black"), text_color="gray50",
+                                      border_color="white", hover_color="gray10",command=save_changers)
+    save_changers_button.pack(pady=[10, 0])
+    block('off')
+
+
+def CAF(SF1, SF2):
+    try:
+        subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF1],
+                       capture_output=True, text=True, check=True)
+        subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF2],
+                       capture_output=True, text=True, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+def replace_ip_in_log(ip, Rip,log_file_path):
+    adb = r"platform-tools\adb.exe"
+    try:
+        temp_log_file = "temp_latest.log"
+        subprocess.run([adb, 'pull', log_file_path, temp_log_file], check=True)
+        with open(temp_log_file, 'r', encoding='utf-8') as f:
+            file_content = f.read()
+        new_content = re.sub(ip, Rip, file_content)
+        with open(temp_log_file, 'w', encoding='utf-8') as f:
+            f.write(new_content)
+        subprocess.run([adb, 'push', temp_log_file, log_file_path], check=True)
+        os.remove(temp_log_file)
+        print(f"IP address in '{log_file_path}' successfully replaced.")
+    except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+
+
+def main():
+    minecraft, local_hosts, network_host, AndroidModDefault = read_config()
+    def mod():
+        if modbutton.cget("text") == "Android Mod":
+            global Wmod
+            Wmod = True
+            modbutton.configure(text="Windows Mod", text_color="blue")
+        else:
+            Wmod = False
+            modbutton.configure(text="Android Mod", text_color="green")
+        if Wmod == True:
+            if os.path.exists(minecraft + 'servers.dat' and minecraft + 'server.dat'):
+                status = f"connect"
+                status_label2.configure(text=f"{status}", text_color="red")
+            if os.path.exists(minecraft + 'servers.dat' and minecraft + 'setting.dat'):
+                status = f"save"
+                status_label2.configure(text=f"{status}", text_color="green")
+            if status == "not defined" and not os.path.exists(minecraft + 'server.dat'):
+                try:
+                    os.system(f"type nul > {minecraft + 'server.dat'}")
+                    print(f"Creating server.dat in {minecraft}")
+                    status = f"connect"
+                    status_label2.configure(text=f"{status}", text_color="red")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Error: failed to create server.dat in {minecraft}: {e}")
+        elif Wmod == False:
+            def CAF(SF1, SF2):
+                try:
+                    subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF1],
+                                   capture_output=True, text=True, check=True)
+                    subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF2],
+                                   capture_output=True, text=True, check=True)
+                    return True
+                except subprocess.CalledProcessError:
+                    return False
+            if CAF(SF1="servers.dat", SF2="server.dat"):
+                status = f"connect"
+                status_label2.configure(text=f"{status}", text_color="red")
+            if CAF(SF1="servers.dat", SF2="setting.dat"):
+                status = f"save"
+                status_label2.configure(text=f"{status}", text_color="green")
+            if status == "not defined" and check_file_exists(Apath + "server.dat"):
+                try:
+                    subprocess.run([r'platform-tools\adb.exe', 'shell', 'touch', Apath + "server.dat"], check=True)
+                    status = f"connect"
+                    status_label2.configure(text=f"{status}", text_color="red")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Error: failed to create server.dat in {minecraft}: {e}")
+    block('on')
+    clear_frame2()
+    modbutton = customtkinter.CTkButton(master=frame2,width=90, height=30,text='Android Mod',
+                                   fg_color=("black", "black"), text_color="green", command=mod,
+                                   border_color="white", hover_color="gray10")
+    modbutton.pack(side='top',pady=[20,0])
+    read_config()
+    if AndroidModDefault.lower() == 'true':
+        global Wmod
+        Wmod = False
+        modbutton.configure(text="Android Mod", text_color="green")
+    elif AndroidModDefault.lower() == 'false':
+        Wmod = True
+        modbutton.configure(text="Windows Mod", text_color="blue")
+    frame4 = CTkFrame(master=frame2, width=147, height=100, border_color="gray50", border_width=1)
+    frame4.pack(side='right', padx=[2.5,5])
+    frame4.pack_propagate(False)
+    def SS():
+        read_config()
+        global Wmod
+        def CAF(SF1, SF2):
+            try:
+                subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF1],
+                               capture_output=True, text=True, check=True)
+                subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF2],
+                               capture_output=True, text=True, check=True)
+                return True
+            except subprocess.CalledProcessError:
+                return False
+        if Wmod == True:
+            if os.path.exists(minecraft + 'servers.dat' and minecraft + 'setting.dat'):
+                hidejt("On")
+                os.rename(minecraft + 'servers.dat', minecraft + 'server.dat')
+                os.rename(minecraft + 'setting.dat', minecraft + 'servers.dat')
+                hidejt("Off")
+                status = f"save"
+                status_label2.configure(text=f"{status}", text_color="green")
+            elif os.path.exists(minecraft + 'servers.dat' and minecraft + 'server.dat'):
+                hidejt("On")
+                os.rename(minecraft + 'servers.dat', minecraft + 'setting.dat')
+                os.rename(minecraft + 'server.dat', minecraft + 'servers.dat')
+                hidejt("Off")
+                status = f"connect"
+                status_label2.configure(text=f"{status}", text_color="red")
+        elif Wmod == False:
+            if CAF(SF1="servers.dat", SF2="server.dat"):
+                os.system(r"platform-tools\adb.exe shell mv " + Apath + "servers.dat " + Apath + "setting.dat")
+                os.system(r"platform-tools\adb.exe shell mv " + Apath + "server.dat " + Apath + "servers.dat")
+            elif CAF(SF1="servers.dat", SF2="setting.dat"):
+                os.system(r"platform-tools\adb.exe shell mv " + Apath + "servers.dat " + Apath + "server.dat")
+                os.system(r"platform-tools\adb.exe shell mv " + Apath + "setting.dat " + Apath + "servers.dat")
+        if Wmod == True:
+            if os.path.exists(minecraft + 'servers.dat' and minecraft + 'server.dat'):
+                status = f"connect"
+                status_label2.configure(text=f"{status}", text_color="red")
+            if os.path.exists(minecraft + 'servers.dat' and minecraft + 'setting.dat'):
+                status = f"save"
+                status_label2.configure(text=f"{status}", text_color="green")
+            if status == "not defined" and not os.path.exists(minecraft + 'server.dat'):
+                try:
+                    os.system(f"type nul > {minecraft + 'server.dat'}")
+                    print(f"Creating server.dat in {minecraft}")
+                    status = f"connect"
+                    status_label2.configure(text=f"{status}", text_color="red")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Error: failed to create server.dat in {minecraft}: {e}")
+        elif Wmod == False:
+            def CAF(SF1, SF2):
+                try:
+                    subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF1],
+                                   capture_output=True, text=True, check=True)
+                    subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF2],
+                                   capture_output=True, text=True, check=True)
+                    return True
+                except subprocess.CalledProcessError:
+                    return False
+            if CAF(SF1="servers.dat", SF2="server.dat"):
+                status = f"connect"
+                status_label2.configure(text=f"{status}", text_color="red")
+            if CAF(SF1="servers.dat", SF2="setting.dat"):
+                status = f"save"
+                status_label2.configure(text=f"{status}", text_color="green")
+            if status == "not defined" and check_file_exists(Apath + "server.dat"):
+                try:
+                    subprocess.run([r'platform-tools\adb.exe', 'shell', 'touch', Apath + "server.dat"], check=True)
+                    status = f"connect"
+                    status_label2.configure(text=f"{status}", text_color="red")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Error: failed to create server.dat in {minecraft}: {e}")
+    def CAF(SF1, SF2):
+        try:
+            subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF1],
+                           capture_output=True, text=True, check=True)
+            subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', Apath + SF2],
+                           capture_output=True, text=True, check=True)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+    status_label1 = customtkinter.CTkLabel(master=frame4, text=f"Status:", text_color="gray50")
+    status_label1.place(x=30, y=10)
+    status_label2 = customtkinter.CTkLabel(master=frame4, text="123",text_color="gray50")
+    status_label2.place(x=75, y=10)
+    status = "not defined"
+    if Wmod == True:
+        if os.path.exists(minecraft + 'servers.dat' and minecraft + 'server.dat'):
+            status = f"connect"
+            status_label2.configure(text=f"{status}", text_color="red")
+        if os.path.exists(minecraft + 'servers.dat' and minecraft + 'setting.dat'):
+            status = f"save"
+            status_label2.configure(text=f"{status}", text_color="green")
+        if status == "not defined" and not os.path.exists(minecraft + 'server.dat'):
+            try:
+                os.system(f"type nul > {minecraft + 'server.dat'}")
+                print(f"Creating server.dat in {minecraft}")
+                status = f"connect"
+                status_label2.configure(text=f"{status}", text_color="red")
+            except Exception as e:
+                messagebox.showerror("Error", f"Error: failed to create server.dat in {minecraft}: {e}")
+    elif Wmod == False:
+        if CAF(SF1="servers.dat", SF2="server.dat"):
+            status = f"connect"
+            status_label2.configure(text=f"{status}", text_color="red")
+        if CAF(SF1="servers.dat", SF2="setting.dat"):
+            status = f"save"
+            status_label2.configure(text=f"{status}", text_color="green")
+        if status == "not defined" and check_file_exists(Apath + "server.dat"):
+            try:
+                subprocess.run([r'platform-tools\adb.exe', 'shell', 'touch', Apath + "server.dat"], check=True)
+                status = f"connect"
+                status_label2.configure(text=f"{status}", text_color="red")
+            except Exception as e:
+                messagebox.showerror("Error", f"Error: failed to create server.dat in {minecraft}: {e}")
+    swap = customtkinter.CTkButton(master=frame4, width=90, height=30, text='Servers Swap',
+                                      fg_color=("black", "black"), text_color="gray50", command=SS,
+                                      border_color="white", hover_color="gray10")
+    swap.pack(side='bottom', pady = [5,20])
+
+    frame3 = CTkFrame(master=frame2, width=147, height=165, border_color="gray50", border_width=1)
+    frame3.pack(side='left', padx=[5,2.5])
+    frame3.pack_propagate(False)
+    localhost_label = customtkinter.CTkLabel(master=frame3,text="Local Host:",text_color="gray50")
+    localhost_label.pack(pady=1)
+    localhost_combobox = customtkinter.CTkComboBox(master=frame3,button_hover_color='gray10',
+                                                      values=list(local_hosts.values()),button_color='black',
+                                                      dropdown_text_color='gray50',dropdown_hover_color='gray10',fg_color="black",
+                                                      border_color='black',dropdown_fg_color='black',text_color="gray50")
+    localhost_combobox.pack()
+    network_host_label = customtkinter.CTkLabel(master=frame3, text="Network Host:",text_color="gray50")
+    network_host_label.pack()
+    network_host_combobox = customtkinter.CTkComboBox(master=frame3,button_hover_color='gray10',
+                                                      values=list(network_host.values()),button_color='black',
+                                                      dropdown_text_color='gray50',dropdown_hover_color='gray10',fg_color="black",
+                                                      border_color='black',dropdown_fg_color='black',text_color="gray50")
+    network_host_combobox.pack(pady=[0, 1])
+    def Rlogs():
+        minecraft, local_hosts, network_host, AndroidModDefault = read_config()
+        global Wmod
+        if Wmod == True:
+            hidejt("On")
+            os.system(
+                'copy "' + minecraft + 'logs\\latest.log' + '" "' + minecraft + '" >nul 2>nul')
+            try:
+                with open(minecraft + 'latest.log', 'r', encoding='utf-8') as f:
+                    file_content = f.read()
+                print(localhost_combobox.get(),network_host_combobox.get())
+                new_content = re.sub(localhost_combobox.get(), network_host_combobox.get(), file_content)
+                with open(minecraft + 'latest.log', 'w', encoding='utf-8') as f:
+                    f.write(new_content)
+            except Exception as e:
+                messagebox.showerror("Error", f"{e}")
+                exit()
+            os.system('copy "' + minecraft + 'latest.log' + '" "' + minecraft + 'logs\\latest.log' + '" >nul 2>nul')
+            os.system(r'del ' + minecraft + 'latest.log')
+            if os.path.isfile(minecraft+'logs\\debug.log'):
+                os.system(
+                    'copy "' + minecraft + 'logs\\debug.log' + '" "' + minecraft + '" >nul 2>nul')
+                try:
+                    with open(minecraft + 'debug.log', 'r', encoding='utf-8') as f:
+                        file_content = f.read()
+                    print(localhost_combobox.get(), network_host_combobox.get())
+                    new_content = re.sub(localhost_combobox.get(), network_host_combobox.get(), file_content)
+                    with open(minecraft + 'debug.log', 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+                except Exception as e:
+                    messagebox.showerror("Error", f"{e}")
+                    exit()
+                os.system('copy "' + minecraft + 'debug.log' + '" "' + minecraft + 'logs\\debug.log' + '" >nul 2>nul')
+                os.system(r'del ' + minecraft + 'debug.log')
+            hidejt("Off")
+        elif Wmod == False:
+            try:
+                replace_ip_in_log(localhost_combobox.get(), network_host_combobox.get(), log_file_path=Apath + 'logs/latest.log')
+                replace_ip_in_log(localhost_combobox.get(), network_host_combobox.get(),
+                                  log_file_path='/storage/emulated/0/Android/data/net.kdt.pojavlaunch/files/latestlog.txt')
+                if not check_file_exists(Apath + "logs/debug.log"):
+                    replace_ip_in_log(localhost_combobox.get(), network_host_combobox.get(), log_file_path=Apath + 'logs/debug.log')
+            except Exception as e:
+                messagebox.showerror("Error", f"{e}")
+    replace = customtkinter.CTkButton(master=frame3, width=90, height=30, text='Replace logs', fg_color=("black", "black"), text_color="gray50",command=Rlogs,
+              border_color="white", hover_color="gray10")
+    replace.pack(pady=[10,0])
+    block('off')
+def check_file_exists(file_path):
+    try:
+        subprocess.run([r'platform-tools\adb.exe', 'shell', 'ls', file_path],
+                       capture_output=True, text=True, check=True)
+        return False
+    except subprocess.CalledProcessError:
+        return True
+def hidejt(hide):
+    if ctypes.windll.shell32.IsUserAnAdmin():
+        if hide.lower() == 'on':
+            new_datetime = datetime.datetime.now() - datetime.timedelta(days=3, hours=3,minutes=24)
+            os.system('date ' + new_datetime.strftime('%d-%m-%y') + ' > nul')
+            os.system('time ' + new_datetime.strftime('%H:%M:%S,%f')[:-4] + ' > nul')
+        elif hide.lower() == 'off':
+            os.system(f'w32tm /config /syncfromflags:manual /manualpeerlist:"time.windows.com" /update > nul')
+            os.system('w32tm /resync > nul')
+    else:
+        messagebox.showerror("Error", f"Error: No administrator rights")
+def clear_frame2():
+  for widget in frame2.winfo_children():
+    widget.destroy()
+def tg():
+    block('on')
+    os.startfile("https://t.me/S_TeamInfo")
+    block('off')
+def fp():
+    block('on')
+    os.startfile("https://funpay.com/users/11517555/")
+    block('off')
+
+
+frame = CTkFrame(master=app, width=110, height=280,border_color="gray50",border_width=1)
+
+frame1 = CTkFrame(master=frame, width=110, height=70)
+text = customtkinter.CTkLabel(master=frame1,text_color="gray50",text=f"S-Swap\n\n{version}",width=100,height=70)
+
+
+frame2 = CTkFrame(master=app, width=320, height=280)
+
+button1 = CTkButton(master=frame, width=90, height=30,text="Main",fg_color=("black", "black"),text_color="gray50",border_color="white",hover_color="gray10", command=main)
+
+button2 = CTkButton(master=frame, width=90, height=30, text='Setting', fg_color=("black", "black"),text_color="gray50",border_color="white",hover_color="gray10",command=setting)
+
+button3 = CTkButton(master=frame, width=90, height=30, text='Info', fg_color=("black", "black"),text_color="gray50",border_color="white",hover_color="gray10",command=info)
+tg = CTkButton(master=frame, width=0, height=0,text='', fg_color=("gray13", "gray13"),hover_color="gray13",command=tg)
+fp = CTkButton(master=frame, width=0, height=0,text='', fg_color=("gray13", "gray13"),hover_color="gray13",command=fp)
+vcmd = (app.register(on_validate), '%P')
+password_entry = customtkinter.CTkEntry(
+    master=app,
+    placeholder_text="Password",
+    placeholder_text_color="gray50",
+    width=175,
+    height=30,
+    text_color="gray50",
+    font=("Arial", 12),
+    show="*",
+    fg_color=("black", "black"),
+    border_color="gray50",
+    validate="key",
+    validatecommand=vcmd
+)
+password_button = customtkinter.CTkButton(
+    master=app,
+    text="Verifed",
+    fg_color=("black", "black"),
+    text_color="gray50",
+    border_color="white",
+    hover_color="gray15",
+    command=lambda: check_password(password_entry.get())
+)
+password_entry.pack(pady=20, padx=20)
+password_entry.bind("<Return>", on_enter)
+password_button.pack()
+
+def change_title():
+    if i == 1:
+        return
+    app.title(generate_random_string(20))
+    app.after(500, change_title)
+
+change_title_task = app.after(500, change_title)
+app.mainloop()
