@@ -96,7 +96,6 @@ def hwid():
         but.pack(anchor="c")
         app.mainloop()
         sys.exit(1)
-hwid()
 def generate_random_string(length):
     characters = string.ascii_letters + string.digits * 2 + string.punctuation
     return ''.join(random.choice(characters) for _ in range(length))
