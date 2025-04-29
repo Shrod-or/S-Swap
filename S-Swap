@@ -2,6 +2,7 @@ import tkinter
 import datetime
 import ctypes
 import customtkinter
+from cryptography.fernet import Fernet
 from adodbapi.apibase import cvtUnicode
 from customtkinter import CTkFrame, CTkButton, CTkTextbox
 import tkinter as tk
@@ -17,19 +18,19 @@ import requests
 import string
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("dark-blue")
+white_list = ['03FF0210-04E0-054B-6806-0E0700080009']
 Apath = "/storage/emulated/0/Android/data/net.kdt.pojavlaunch/files/.minecraft/"
+KEY = b'UJe9ON9sdR_DmsHouwaKZ0LGz-5sbXj77xZRkckPpQo='
 i=0
 
 app = customtkinter.CTk()
 app.iconbitmap("platform-tools\\why.ico")
 app.geometry("325x150")
 app.resizable(False, False)
-version = '1.01'
-PASTEBIN_URL = "https://pastebin.com/raw/uSLVgQjv"
+version = '1.02'
+PASTEBIN_URL = "https://pastebin.com/raw/ZaKkn7C5"
 def get_hwid():
-    command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
-    result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
-    uuid = result.stdout.strip()
+    uuid = subprocess.check_output("wmic csproduct get uuid").decode().split('\n')[1].strip()
     return hash(uuid)
 
 def check_hwid(hwids, user_hwid):
@@ -45,10 +46,7 @@ def hwid():
             app = customtkinter.CTk()
             app.geometry("399x150")
             app.resizable(False, False)
-            command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
-            result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
-            uuid = result.stdout.strip()
-            app.title(uuid)
+            app.title(subprocess.check_output("wmic csproduct get uuid").decode().split('\n')[1].strip())
 
             but = customtkinter.CTkButton(
                 master=app,
@@ -69,10 +67,7 @@ def hwid():
     except Exception:
         None
     global user_hwid
-    command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
-    result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
-    uuid = result.stdout.strip()
-    user_hwid = hash(uuid)
+    user_hwid = hash(subprocess.check_output("wmic csproduct get uuid").decode().split('\n')[1].strip())
     try:
         hwids = requests.get(PASTEBIN_URL).text.splitlines()
     except Exception as e:
@@ -84,10 +79,7 @@ def hwid():
         app = customtkinter.CTk()
         app.geometry("399x150")
         app.resizable(False, False)
-        command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
-        result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
-        uuid = result.stdout.strip()
-        app.title(uuid)
+        app.title(subprocess.check_output("wmic csproduct get uuid").decode().split('\n')[1].strip())
         but = customtkinter.CTkButton(
             master=app,
             text="Go to support",
@@ -104,6 +96,7 @@ def hwid():
         but.pack(anchor="c")
         app.mainloop()
         sys.exit(1)
+hwid()
 def generate_random_string(length):
     characters = string.ascii_letters + string.digits * 2 + string.punctuation
     return ''.join(random.choice(characters) for _ in range(length))
@@ -113,28 +106,55 @@ def on_validate(P):
 
 def on_enter(event):
     check_password(password_entry.get())
-def read_config(config_file = "config.json"):
+def create_default_config():
+    default_config = {
+        "minecraft": "default_minecraft_path",
+        "local_hosts": {"1": "0.0.0.0"},
+        "network_host": {"1": "connect.funtime.su."},
+        "AndroidModDefault": "false"
+    }
+    return default_config
+def read_config(config_file="config.swap"):
     try:
         if not os.path.exists(config_file):
-            print(f"Error: File '{config_file}' not found.")
-            return None
-        with open(config_file, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            config["minecraft"] = config.get('minecraft')
-            config["local_hosts"] = config.get('local_hosts')
-            config["network_host"] = config.get('network_host')
-            config["AndroidModDefault"] = config.get('AndroidModDefault')
-            if not all([config["minecraft"], config["local_hosts"], config["minecraft"], config["AndroidModDefault"]]):
-                raise ValueError("Missing required fields in config.json")
-            return config["minecraft"],config["local_hosts"],config["network_host"],config["AndroidModDefault"]
+            print(f"Config file '{config_file}' not found.")
+            default_config = create_default_config()
+            cipher_suite = Fernet(KEY)
+            encrypted_data = cipher_suite.encrypt(json.dumps(default_config).encode())
+            with open(config_file, "wb") as f:
+                f.write(encrypted_data)
+            print("New config file created with default values.")
+            return (
+                default_config["minecraft"],
+                default_config["local_hosts"],
+                default_config["network_host"],
+                default_config["AndroidModDefault"]
+            )
+
+        cipher_suite = Fernet(KEY)
+        with open(config_file, "rb") as f:
+            encrypted_data = f.read()
+        decrypted_data = cipher_suite.decrypt(encrypted_data).decode()
+        config = json.loads(decrypted_data)
+
+        config["minecraft"] = config.get('minecraft')
+        config["local_hosts"] = config.get('local_hosts')
+        config["network_host"] = config.get('network_host')
+        config["AndroidModDefault"] = config.get('AndroidModDefault')
+
+        if not all([config["minecraft"], config["local_hosts"], config["network_host"], config["AndroidModDefault"]]):
+            raise ValueError("Missing required fields in config.swap")
+
+        return config["minecraft"], config["local_hosts"], config["network_host"], config["AndroidModDefault"]
+
     except FileNotFoundError:
-        messagebox.showerror("Error", f"Error: config.json not found.")
+        messagebox.showerror("Error", f"Error: {config_file} not found.")
         exit()
     except json.JSONDecodeError as e:
-        messagebox.showerror("Error", f"Error: Syntax config.json broken: {e}")
+        messagebox.showerror("Error", f"Error: Syntax in {config_file} is broken: {e}")
         exit()
     except ValueError as e:
-        messagebox.showerror("Error", f"Error in config.json: {e}")
+        messagebox.showerror("Error", f"Error in {config_file}: {e}")
         exit()
     except Exception as e:
         messagebox.showerror("Error", f"An unexpected error occurred: {e}")
@@ -145,7 +165,7 @@ def check_password(password):
         if requests.get(PASTEBIN_URL).text.split(" ")[1]:
             correct_password = hash(requests.get(PASTEBIN_URL).text.split(" ")[1])
     except Exception:
-        correct_password = hash("1")
+        correct_password = hash("123123")
     if hash(password) == correct_password:
         password_entry.pack_forget()
         password_button.pack_forget()
@@ -180,16 +200,18 @@ def check_password(password):
         else:
             messagebox.showerror("Error", f"Error: No administrator rights")
             sys.exit(0)
+        if requests.get('https://pastebin.com/raw/ghSaRimj').text != version:
+            result = messagebox.askquestion("Update available",
+                                            "New update available. Want to get it now?")
+            if result == "yes":
+                url()
     else:
         return
 
 def info():
     block('on')
     clear_frame2()
-    command = "Get-WmiObject -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"
-    result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, check=True)
-    uuid = result.stdout.strip()
-    info_label = minecraft_label = customtkinter.CTkLabel(master=frame2, text=f"Version: {version}\nHWID: {uuid}",text_color="gray50")
+    info_label = minecraft_label = customtkinter.CTkLabel(master=frame2, text=f"Version: {version}\nHWID: {subprocess.check_output("wmic csproduct get uuid").decode().split('\n')[1].strip()}",text_color="gray50")
     minecraft_label.pack(pady=1)
     info_label.pack(pady=1)
     block('off')
@@ -209,7 +231,7 @@ def block(text):
 
 def setting():
     block('on')
-    minecraft, local_hosts, network_host, AndroidModDefault = read_config()
+    minecraft, local_hosts, network_host, AndroidModDefault = read_config("config.swap")
     clear_frame2()
     frame3 = CTkFrame(master=frame2, width=250, height=260, border_color="gray50", border_width=1)
     frame3.pack(side='top', padx=[5,5], pady=10)
@@ -242,41 +264,64 @@ def setting():
     checkbox1.pack(pady=[10, 0])
     if AndroidModDefault.lower() == 'true':
         checkbox1.select()
+
     def save_changers():
-        with open("config.json", "r") as f:
-            config = json.load(f)
-        minecraft_path = minecraft_combobox.get()
-        local_host = local_hosts_combobox.get()
-        network_host = network_host_combobox.get()
-        android_mode_default = checkbox1.get()
-        config['minecraft'] = minecraft_path
-        config['AndroidModDefault'] = str(bool(android_mode_default))
-        found_local = False
-        for key, value in config['local_hosts'].items():
-            if value == local_host or local_host =='':
-                found_local = True
-                break
-        if not found_local:
-            new_key = str(len(config['local_hosts']) + 1)
-            config['local_hosts'][new_key] = local_host
-
-        found_network = False
-        for key, value1 in config['network_host'].items():
-            if value1 == network_host or network_host =='':
-                found_network = True
-                break
-
-        if not found_network:
-            new_key = str(len(config['network_host']) + 1)
-            config['network_host'][new_key] = network_host
         try:
-            with open("config.json", "w") as f:
-                json.dump(config, f, indent=4)
+            cipher_suite = Fernet(KEY)
+            with open("config.swap", "rb") as f:
+                encrypted_data = f.read()
+            decrypted_data = cipher_suite.decrypt(encrypted_data).decode()
+            config = json.loads(decrypted_data)
+
+            minecraft_path = minecraft_combobox.get()
+            local_host = local_hosts_combobox.get()
+            network_host = network_host_combobox.get()
+            android_mode_default = checkbox1.get()
+
+            config['minecraft'] = minecraft_path
+            config['AndroidModDefault'] = str(bool(android_mode_default))
+
+            found_local = False
+            for key, value in config['local_hosts'].items():
+                if value == local_host or local_host == '':
+                    found_local = True
+                    break
+            if not found_local:
+                new_key = str(len(config['local_hosts']) + 1)
+                config['local_hosts'][new_key] = local_host
+
+            found_network = False
+            for key, value1 in config['network_host'].items():
+                if value1 == network_host or network_host == '':
+                    found_network = True
+                    break
+            if not found_network:
+                new_key = str(len(config['network_host']) + 1)
+                config['network_host'][new_key] = network_host
+
+            config_str = json.dumps(config, indent=4)
+            encrypted_data = cipher_suite.encrypt(config_str.encode())
+            with open("config.swap", "wb") as f:
+                f.write(encrypted_data)
+
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Error: config.swap not found.")
+        except json.JSONDecodeError as e:
+            messagebox.showerror("Error", f"Error: Syntax in config.swap is broken: {e}")
         except Exception as e:
-            messagebox.showerror("Error", f"Error saving config: {e}")
-    save_changers_button = customtkinter.CTkButton(master=frame3, width=90, height=30, text='Save changes',
-                                      fg_color=("black", "black"), text_color="gray50",
-                                      border_color="white", hover_color="gray10",command=save_changers)
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
+
+    save_changers_button = customtkinter.CTkButton(
+        master=frame3,
+        width=90,
+        height=30,
+        text='Save changes',
+        fg_color=("black", "black"),
+        text_color="gray50",
+        border_color="white",
+        hover_color="gray10",
+        command=save_changers
+    )
     save_changers_button.pack(pady=[10, 0])
     block('off')
 
@@ -308,7 +353,7 @@ def replace_ip_in_log(ip, Rip,log_file_path):
 
 
 def main():
-    minecraft, local_hosts, network_host, AndroidModDefault = read_config()
+    minecraft, local_hosts, network_host, AndroidModDefault = read_config("config.swap")
     def mod():
         if modbutton.cget("text") == "Android Mod":
             global Wmod
@@ -510,7 +555,7 @@ def main():
                                                       border_color='black',dropdown_fg_color='black',text_color="gray50")
     network_host_combobox.pack(pady=[0, 1])
     def Rlogs():
-        minecraft, local_hosts, network_host, AndroidModDefault = read_config()
+        minecraft, local_hosts, network_host, AndroidModDefault = read_config("config.swap")
         global Wmod
         if Wmod == True:
             hidejt("On")
